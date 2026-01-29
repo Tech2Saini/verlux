@@ -1,5 +1,5 @@
-import { adminDb } from "./firebase-admin"
-import { SEOPageData, defaultSEOData } from "./types/seo"
+import { adminDb, isAdminInitialized } from "./firebase-admin"
+import { SEOPageData, defaultSEOData, defaultSEOPages } from "./types/seo"
 import { Metadata } from "next"
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://verluxstands.com"
@@ -16,6 +16,20 @@ export async function getSEO(slug: string): Promise<SEOPageData> {
   const cached = seoCache.get(normalizedSlug)
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.data
+  }
+
+  // If Firebase Admin is not initialized, return default SEO data
+  if (!isAdminInitialized || !adminDb) {
+    // Check if we have default SEO data for this slug
+    const defaultPage = defaultSEOPages.find(p => p.slug === normalizedSlug)
+    if (defaultPage) {
+      return defaultPage
+    }
+    return {
+      ...defaultSEOData,
+      slug: normalizedSlug,
+      canonical: `${baseUrl}/${normalizedSlug === "home" ? "" : normalizedSlug}`,
+    }
   }
 
   try {
@@ -39,6 +53,10 @@ export async function getSEO(slug: string): Promise<SEOPageData> {
   }
 
   // Return default SEO data if not found
+  const defaultPage = defaultSEOPages.find(p => p.slug === normalizedSlug)
+  if (defaultPage) {
+    return defaultPage
+  }
   return {
     ...defaultSEOData,
     slug: normalizedSlug,
@@ -47,6 +65,11 @@ export async function getSEO(slug: string): Promise<SEOPageData> {
 }
 
 export async function getAllSEOPages(): Promise<SEOPageData[]> {
+  // If Firebase Admin is not initialized, return default pages
+  if (!isAdminInitialized || !adminDb) {
+    return defaultSEOPages
+  }
+
   try {
     const snapshot = await adminDb.collection("seo_pages").get()
     return snapshot.docs.map((doc) => ({
@@ -55,11 +78,16 @@ export async function getAllSEOPages(): Promise<SEOPageData[]> {
     }))
   } catch (error) {
     console.error("Error fetching all SEO pages:", error)
-    return []
+    return defaultSEOPages
   }
 }
 
 export async function getIndexableSEOPages(): Promise<SEOPageData[]> {
+  // If Firebase Admin is not initialized, return default indexable pages
+  if (!isAdminInitialized || !adminDb) {
+    return defaultSEOPages.filter(p => p.index)
+  }
+
   try {
     const snapshot = await adminDb
       .collection("seo_pages")
@@ -71,7 +99,7 @@ export async function getIndexableSEOPages(): Promise<SEOPageData[]> {
     }))
   } catch (error) {
     console.error("Error fetching indexable SEO pages:", error)
-    return []
+    return defaultSEOPages.filter(p => p.index)
   }
 }
 
