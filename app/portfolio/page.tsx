@@ -3,20 +3,14 @@ import Image from "next/image"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
+import { DynamicSchema } from "@/components/seo/schema"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
 import { ArrowUpRight } from "lucide-react"
 
-export const metadata: Metadata = {
-  title: "Exhibition Stand Portfolio | Award-Winning Projects & Case Studies",
-  description: "Browse our portfolio of 500+ exhibition stands across technology, automotive, healthcare, fashion & more. Award-winning designs from Las Vegas to Frankfurt, Milan to Dubai.",
-  keywords: ["exhibition stand portfolio", "trade show booth examples", "exhibition design case studies", "booth design gallery", "stand design inspiration"],
-  alternates: {
-    canonical: "https://verluxstands.com/portfolio",
-  },
-  openGraph: {
-    title: "Exhibition Stand Portfolio | Verlux Stands",
-    description: "Browse 500+ award-winning exhibition stand projects from around the world.",
-    url: "https://verluxstands.com/portfolio",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("portfolio")
+  return generateMetadataFromSEO(seo)
 }
 
 const projects = [
@@ -70,9 +64,12 @@ const projects = [
   },
 ]
 
-export default function PortfolioPage() {
+export default async function PortfolioPage() {
+  const seo = await getSEO("portfolio")
+  
   return (
     <main className="min-h-screen bg-background">
+      <DynamicSchema seo={seo} />
       <Header />
       <PageHeader
         subtitle="Our Work"

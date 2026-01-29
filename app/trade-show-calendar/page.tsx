@@ -2,22 +2,16 @@ import { Metadata } from "next"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
+import { DynamicSchema } from "@/components/seo/schema"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
 import { Calendar, MapPin, Users, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export const metadata: Metadata = {
-  title: "Trade Show Calendar 2026 | Major Exhibitions & Events Worldwide",
-  description: "Plan your exhibition presence with our 2026 trade show calendar. CES, Mobile World Congress, Hannover Messe, Gitex & more. Book your stand 4-6 months ahead for best results.",
-  keywords: ["trade show calendar 2026", "exhibition calendar", "upcoming trade shows", "CES 2026", "Mobile World Congress", "exhibition events", "trade fair schedule"],
-  alternates: {
-    canonical: "https://verluxstands.com/trade-show-calendar",
-  },
-  openGraph: {
-    title: "Trade Show Calendar 2026 | Verlux Stands",
-    description: "Explore major trade shows and exhibitions worldwide. Plan your stand booking in advance.",
-    url: "https://verluxstands.com/trade-show-calendar",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("trade-show-calendar")
+  return generateMetadataFromSEO(seo)
 }
 
 const upcomingShows = [
@@ -87,9 +81,12 @@ const upcomingShows = [
   },
 ]
 
-export default function TradeShowCalendarPage() {
+export default async function TradeShowCalendarPage() {
+  const seo = await getSEO("trade-show-calendar")
+  
   return (
     <main className="min-h-screen bg-background">
+      <DynamicSchema seo={seo} />
       <Header />
       <PageHeader
         subtitle="Upcoming Events"

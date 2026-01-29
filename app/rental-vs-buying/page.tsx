@@ -3,22 +3,16 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
 import { FAQSchema, BreadcrumbSchema } from "@/components/structured-data"
+import { DynamicSchema } from "@/components/seo/schema"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
 import { Check, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export const metadata: Metadata = {
-  title: "Exhibition Stand Rental vs Buying | Complete Comparison Guide",
-  description: "Should you rent or buy an exhibition stand? Compare costs, benefits & ROI. Rental ideal for 1-3 events/year, purchase better for 4+ events. Get expert advice from Verlux Stands.",
-  keywords: ["exhibition stand rental", "buy vs rent trade show booth", "exhibition stand hire", "modular stand rental", "booth rental comparison", "exhibition stand costs"],
-  alternates: {
-    canonical: "https://verluxstands.com/rental-vs-buying",
-  },
-  openGraph: {
-    title: "Exhibition Stand Rental vs Buying | Verlux Stands",
-    description: "Complete comparison guide: Should you rent or buy an exhibition stand? Expert advice and cost analysis.",
-    url: "https://verluxstands.com/rental-vs-buying",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("rental-vs-buying")
+  return generateMetadataFromSEO(seo)
 }
 
 const rentalBenefits = [
@@ -73,9 +67,12 @@ const rentalFaqs = [
   }
 ]
 
-export default function RentalVsBuyingPage() {
+export default async function RentalVsBuyingPage() {
+  const seo = await getSEO("rental-vs-buying")
+  
   return (
     <>
+      <DynamicSchema seo={seo} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://verluxstands.com" },
         { name: "Rental vs Buying", url: "https://verluxstands.com/rental-vs-buying" }

@@ -3,22 +3,16 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
 import { ServiceSchema, BreadcrumbSchema } from "@/components/structured-data"
+import { DynamicSchema } from "@/components/seo/schema"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
 import { Lightbulb, Palette, Hammer, Truck, Users, Award, Settings, Zap, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export const metadata: Metadata = {
-  title: "Exhibition Stand Services | Design, Build & Installation",
-  description: "Complete exhibition stand services: concept development, 3D design, custom fabrication, logistics & installation. End-to-end trade show booth solutions for businesses worldwide.",
-  keywords: ["exhibition stand services", "trade show booth design", "stand fabrication", "exhibition installation", "modular stand systems", "AV integration", "booth logistics"],
-  alternates: {
-    canonical: "https://verluxstands.com/services",
-  },
-  openGraph: {
-    title: "Exhibition Stand Services | Verlux Stands",
-    description: "Complete exhibition stand services from concept to installation. Custom fabrication, 3D design & global logistics.",
-    url: "https://verluxstands.com/services",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("services")
+  return generateMetadataFromSEO(seo)
 }
 
 const services = [
@@ -69,9 +63,12 @@ const services = [
   },
 ]
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const seo = await getSEO("services")
+  
   return (
     <>
+      <DynamicSchema seo={seo} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://verluxstands.com" },
         { name: "Services", url: "https://verluxstands.com/services" }

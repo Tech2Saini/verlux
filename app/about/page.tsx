@@ -3,20 +3,14 @@ import Image from "next/image"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
+import { DynamicSchema } from "@/components/seo/schema"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
 import { CheckCircle2, Users, Award, Globe, Leaf } from "lucide-react"
 
-export const metadata: Metadata = {
-  title: "About Verlux Stands | 15+ Years of Exhibition Excellence",
-  description: "Verlux Stands has been crafting exhibition excellence since 2009. 500+ projects, 30+ countries, 98% client satisfaction. Meet our team of architects, designers & craftsmen.",
-  keywords: ["about Verlux Stands", "exhibition stand company", "trade show booth builder", "exhibition design team", "stand fabrication company"],
-  alternates: {
-    canonical: "https://verluxstands.com/about",
-  },
-  openGraph: {
-    title: "About Verlux Stands | 15+ Years of Exhibition Excellence",
-    description: "Award-winning exhibition stand company since 2009. Meet the team behind 500+ successful projects worldwide.",
-    url: "https://verluxstands.com/about",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("about")
+  return generateMetadataFromSEO(seo)
 }
 
 const stats = [
@@ -55,9 +49,12 @@ const team = [
   { name: "Marcus Johnson", role: "Head of Operations", image: "/images/stand-3.jpg" },
 ]
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const seo = await getSEO("about")
+  
   return (
     <main className="min-h-screen bg-background">
+      <DynamicSchema seo={seo} />
       <Header />
       <PageHeader
         subtitle="Our Story"

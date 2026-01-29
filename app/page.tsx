@@ -9,18 +9,13 @@ import { Testimonials } from "@/components/testimonials"
 import { CTA } from "@/components/cta"
 import { Footer } from "@/components/footer"
 import { OrganizationSchema, LocalBusinessSchema, FAQSchema } from "@/components/structured-data"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
+import { DynamicSchema } from "@/components/seo/schema"
 
-export const metadata: Metadata = {
-  title: "Premium Exhibition Stand Design & Build Company",
-  description: "Verlux Stands is an award-winning exhibition stand design company. We create custom trade show booths, modular displays & bespoke exhibition solutions. 15+ years experience, 500+ projects in 30+ countries.",
-  alternates: {
-    canonical: "https://verluxstands.com",
-  },
-  openGraph: {
-    title: "Verlux Stands | Premium Exhibition Stand Design & Build Company",
-    description: "Award-winning exhibition stand design company creating custom trade show booths and bespoke exhibition solutions worldwide.",
-    url: "https://verluxstands.com",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("home")
+  return generateMetadataFromSEO(seo)
 }
 
 const homeFaqs = [
@@ -42,9 +37,12 @@ const homeFaqs = [
   }
 ]
 
-export default function Home() {
+export default async function Home() {
+  const seo = await getSEO("home")
+  
   return (
     <>
+      <DynamicSchema seo={seo} />
       <OrganizationSchema />
       <LocalBusinessSchema />
       <FAQSchema faqs={homeFaqs} />

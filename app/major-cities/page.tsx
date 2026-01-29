@@ -2,22 +2,16 @@ import { Metadata } from "next"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
+import { DynamicSchema } from "@/components/seo/schema"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
 import { MapPin, Building2, Calendar, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export const metadata: Metadata = {
-  title: "Exhibition Stand Services by Location | London, Frankfurt, Las Vegas & More",
-  description: "Verlux Stands delivers exhibition solutions in 30+ countries. London, Frankfurt, Las Vegas, Dubai, Singapore, Barcelona, Paris & Chicago. Local expertise, global standards.",
-  keywords: ["exhibition stands London", "trade show booths Frankfurt", "exhibition builders Las Vegas", "Dubai exhibition stands", "Singapore trade show", "exhibition stand locations"],
-  alternates: {
-    canonical: "https://verluxstands.com/major-cities",
-  },
-  openGraph: {
-    title: "Exhibition Stand Services Worldwide | Verlux Stands",
-    description: "Exhibition stand design & build in 30+ countries. Find your nearest location.",
-    url: "https://verluxstands.com/major-cities",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("major-cities")
+  return generateMetadataFromSEO(seo)
 }
 
 const cities = [
@@ -86,9 +80,12 @@ const regions = [
   { name: "Asia Pacific", countries: "Singapore, Hong Kong, Japan, Australia" },
 ]
 
-export default function MajorCitiesPage() {
+export default async function MajorCitiesPage() {
+  const seo = await getSEO("major-cities")
+  
   return (
     <main className="min-h-screen bg-background">
+      <DynamicSchema seo={seo} />
       <Header />
       <PageHeader
         subtitle="Global Presence"

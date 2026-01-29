@@ -3,22 +3,16 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { PageHeader } from "@/components/page-header"
 import { ReviewSchema, BreadcrumbSchema } from "@/components/structured-data"
+import { DynamicSchema } from "@/components/seo/schema"
+import { getSEO, generateMetadataFromSEO } from "@/lib/seo"
 import { Star, Quote } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-export const metadata: Metadata = {
-  title: "Client Testimonials & Reviews | Exhibition Stand Success Stories",
-  description: "Read verified reviews from Fortune 500 companies and innovative startups. 98% client satisfaction rate. Discover why leading brands trust Verlux Stands for their exhibitions.",
-  keywords: ["exhibition stand reviews", "trade show booth testimonials", "Verlux Stands reviews", "client success stories", "exhibition company reviews"],
-  alternates: {
-    canonical: "https://verluxstands.com/testimonials",
-  },
-  openGraph: {
-    title: "Client Testimonials | Verlux Stands",
-    description: "Read verified reviews from leading brands. 98% client satisfaction across 500+ projects.",
-    url: "https://verluxstands.com/testimonials",
-  },
+// Generate metadata from CMS
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSEO("testimonials")
+  return generateMetadataFromSEO(seo)
 }
 
 const testimonials = [
@@ -87,7 +81,8 @@ const testimonials = [
   },
 ]
 
-export default function TestimonialsPage() {
+export default async function TestimonialsPage() {
+  const seo = await getSEO("testimonials")
   const reviewsForSchema = testimonials.map(t => ({
     author: t.author,
     rating: t.rating,
@@ -96,6 +91,7 @@ export default function TestimonialsPage() {
 
   return (
     <>
+      <DynamicSchema seo={seo} />
       <BreadcrumbSchema items={[
         { name: "Home", url: "https://verluxstands.com" },
         { name: "Testimonials", url: "https://verluxstands.com/testimonials" }

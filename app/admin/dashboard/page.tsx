@@ -3,10 +3,13 @@
 import { useEffect, useState } from "react"
 import { AdminSidebar } from "@/components/admin/sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, Search, Globe, AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { FileText, Search, Globe, AlertTriangle, Database, Loader2 } from "lucide-react"
 import { collection, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { SEOPageData } from "@/lib/types/seo"
+import { seedInitialSEOData } from "@/lib/actions/seo-actions"
+import { toast } from "sonner"
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -16,6 +19,33 @@ export default function AdminDashboard() {
     missingSchema: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [seeding, setSeeding] = useState(false)
+
+  async function handleSeedData() {
+    setSeeding(true)
+    try {
+      const result = await seedInitialSEOData()
+      if (result.success) {
+        toast.success(result.message || "SEO data seeded successfully")
+        // Refresh stats
+        const snapshot = await getDocs(collection(db, "seo_pages"))
+        const pages = snapshot.docs.map((doc) => doc.data() as SEOPageData)
+        setStats({
+          totalPages: pages.length,
+          indexedPages: pages.filter((p) => p.index).length,
+          noIndexPages: pages.filter((p) => !p.index).length,
+          missingSchema: pages.filter((p) => !p.schemaType).length,
+        })
+      } else {
+        toast.error(result.error || "Failed to seed data")
+      }
+    } catch (error) {
+      console.error("Error seeding data:", error)
+      toast.error("Failed to seed SEO data")
+    } finally {
+      setSeeding(false)
+    }
+  }
 
   useEffect(() => {
     async function fetchStats() {
@@ -127,12 +157,27 @@ export default function AdminDashboard() {
               >
                 <Globe className="w-5 h-5 text-primary" />
                 <div>
-                  <p className="font-medium text-foreground">View Sitemap</p>
-                  <p className="text-sm text-muted-foreground">See all indexed pages</p>
-                </div>
-              </a>
-            </CardContent>
-          </Card>
+<p className="font-medium text-foreground">View Sitemap</p>
+  <p className="text-sm text-muted-foreground">See all indexed pages</p>
+  </div>
+  </a>
+  <button
+  onClick={handleSeedData}
+  disabled={seeding}
+  className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors w-full text-left disabled:opacity-50"
+  >
+  {seeding ? (
+    <Loader2 className="w-5 h-5 text-primary animate-spin" />
+  ) : (
+    <Database className="w-5 h-5 text-primary" />
+  )}
+  <div>
+  <p className="font-medium text-foreground">Seed Initial Data</p>
+  <p className="text-sm text-muted-foreground">Populate SEO data for all pages</p>
+  </div>
+  </button>
+  </CardContent>
+  </Card>
 
           <Card className="bg-card border-border">
             <CardHeader>
