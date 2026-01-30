@@ -1,10 +1,10 @@
-import { adminDb, isAdminInitialized } from "./firebase-admin"
+import { adminDatabase, isAdminInitialized } from "./firebase-admin"
 import { SEOPageData, defaultSEOData, defaultSEOPages } from "./types/seo"
 import { Metadata } from "next"
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://verluxstands.com"
 
-// Cache for SEO data to reduce Firestore reads
+// Cache for SEO data to reduce database reads
 const seoCache = new Map<string, { data: SEOPageData; timestamp: number }>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
@@ -19,7 +19,7 @@ export async function getSEO(slug: string): Promise<SEOPageData> {
   }
 
   // If Firebase Admin is not initialized, return default SEO data
-  if (!isAdminInitialized || !adminDb) {
+  if (!isAdminInitialized || !adminDatabase) {
     // Check if we have default SEO data for this slug
     const defaultPage = defaultSEOPages.find(p => p.slug === normalizedSlug)
     if (defaultPage) {
@@ -33,14 +33,14 @@ export async function getSEO(slug: string): Promise<SEOPageData> {
   }
 
   try {
-    const docRef = adminDb.collection("seo_pages").doc(normalizedSlug)
-    const doc = await docRef.get()
+    const ref = adminDatabase.ref(`seo_pages/${normalizedSlug}`)
+    const snapshot = await ref.get()
 
-    if (doc.exists) {
-      const data = doc.data() as SEOPageData
+    if (snapshot.exists()) {
+      const data = snapshot.val() as SEOPageData
       const seoData = {
         ...data,
-        id: doc.id,
+        id: normalizedSlug,
         lastUpdated: data.lastUpdated || null,
       }
       
@@ -66,16 +66,22 @@ export async function getSEO(slug: string): Promise<SEOPageData> {
 
 export async function getAllSEOPages(): Promise<SEOPageData[]> {
   // If Firebase Admin is not initialized, return default pages
-  if (!isAdminInitialized || !adminDb) {
+  if (!isAdminInitialized || !adminDatabase) {
     return defaultSEOPages
   }
 
   try {
-    const snapshot = await adminDb.collection("seo_pages").get()
-    return snapshot.docs.map((doc) => ({
-      ...(doc.data() as SEOPageData),
-      id: doc.id,
-    }))
+    const ref = adminDatabase.ref("seo_pages")
+    const snapshot = await ref.get()
+    
+    if (snapshot.exists()) {
+      const data = snapshot.val()
+      return Object.entries(data).map(([key, value]) => ({
+        ...(value as SEOPageData),
+        id: key,
+      }))
+    }
+    return defaultSEOPages
   } catch (error) {
     console.error("Error fetching all SEO pages:", error)
     return defaultSEOPages
@@ -84,19 +90,22 @@ export async function getAllSEOPages(): Promise<SEOPageData[]> {
 
 export async function getIndexableSEOPages(): Promise<SEOPageData[]> {
   // If Firebase Admin is not initialized, return default indexable pages
-  if (!isAdminInitialized || !adminDb) {
+  if (!isAdminInitialized || !adminDatabase) {
     return defaultSEOPages.filter(p => p.index)
   }
 
   try {
-    const snapshot = await adminDb
-      .collection("seo_pages")
-      .where("index", "==", true)
-      .get()
-    return snapshot.docs.map((doc) => ({
-      ...(doc.data() as SEOPageData),
-      id: doc.id,
-    }))
+    const ref = adminDatabase.ref("seo_pages")
+    const snapshot = await ref.orderByChild("index").equalTo(true).get()
+    
+    if (snapshot.exists()) {
+      const data = snapshot.val()
+      return Object.entries(data).map(([key, value]) => ({
+        ...(value as SEOPageData),
+        id: key,
+      }))
+    }
+    return defaultSEOPages.filter(p => p.index)
   } catch (error) {
     console.error("Error fetching indexable SEO pages:", error)
     return defaultSEOPages.filter(p => p.index)
